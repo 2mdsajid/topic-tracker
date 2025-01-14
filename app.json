@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "tt",
-    "slug": "tt",
+    "name": "Topic Tracker",
+    "slug": "topic-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -38,6 +38,14 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5e649d5b-ded5-447d-9c23-2a0e65245198"
+      }
     }
   }
 }

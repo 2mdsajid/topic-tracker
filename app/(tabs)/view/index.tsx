@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import { Picker } from '@react-native-picker/picker';
+
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { FILENAME } from '@/constants/data';
 import { Subject, Topic } from '@/constants/types';
+import { defineBgColorBasedOnRevisions } from '@/constants/functions';
 
 
+import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select';
 
 const ViewTopics: React.FC = () => {
-
   const [subjects, setSubjects] = useState<Subject>([]);
   const [filteredTopics, setFilteredTopics] = useState<Topic[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<string>('All');
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
 
   // Load subjects from the JSON file
   useFocusEffect(
@@ -44,7 +46,7 @@ const ViewTopics: React.FC = () => {
 
   // Filter topics based on selected subject
   const filterTopics = (subjectName: string) => {
-    if (subjectName === 'All') {
+    if (subjectName === 'all') {
       setFilteredTopics(getAllTopics(subjects));
     } else {
       const subject = subjects.find((subj) => subj.name === subjectName);
@@ -61,106 +63,85 @@ const ViewTopics: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Topics</Text>
+    <View className="flex-1 bg-gray-100 p-4">
+      <Text className="text-2xl font-bold mb-4">Topics</Text>
 
       {/* Subject Picker */}
-      <View style={styles.pickerContainer}>
-        <Picker
+      <View className="mb-4">
+        {/* <Picker
           selectedValue={selectedSubject}
           onValueChange={(itemValue) => filterTopics(itemValue)}
-          style={styles.picker}
+          style={{ backgroundColor: '#fff', borderRadius: 8, paddingVertical: 8 }}
         >
-          <Picker.Item label="All Subjects" value="All" />
+          <Picker.Item label="All Subjects" value="all" />
           {subjects.map((subject) => (
             <Picker.Item key={subject.name} label={subject.name} value={subject.name} />
           ))}
-        </Picker>
+        </Picker> */}
+
+        <RNPickerSelect
+        onValueChange={(value) => filterTopics(value)}
+        items={subjects.map((subject) => ({ label: subject.name, value: subject.name }))}
+        value={selectedSubject}
+        placeholder={{ label: 'All Subjects', value: 'all' }}
+        style={{
+          inputAndroid: {
+            paddingHorizontal: 5,
+            paddingVertical: 0,
+            borderRadius: 20,
+            marginBottom: 10,
+            backgroundColor: 'white',
+            fontSize: 16
+          },
+          inputIOS: { paddingHorizontal: 10, paddingVertical: 12, borderRadius: 8, backgroundColor: 'white', fontSize: 16 },
+        }}
+      />
       </View>
 
       {/* Topics List */}
       <FlatList
         data={filteredTopics}
         keyExtractor={(item, index) => `${item.name}-${index}`}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.topicCard}>
-            <Text style={styles.topicTitle}>{item.name}</Text>
-            <Text style={styles.topicPriority}>{renderStars(item.priority)}</Text>
-            <Text style={styles.topicText}>
-              <Text style={styles.bold}>Added:</Text> {new Date(item.added).toDateString()}
-            </Text>
-            <Text style={styles.topicText}>
-              <Text style={styles.bold}>Last Revised:</Text> {item.lastRevision}
-            </Text>
-            <Text style={styles.topicText}>
-              <Text style={styles.bold}>Revisions:</Text> {item.revisions}
-            </Text>
-            <Link href={`/view/${item.id}`}>
-              <Text style={styles.topicText}>View Details</Text>
-            </Link>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }) => {
+
+          // Determine background color based on revisions
+          let bgColor = 'border-gray-500'; // Default color
+          if (item.revisions === 0) {
+            bgColor = 'border-red-500'; 
+          } else if (item.revisions === 1) {
+            bgColor = 'border-yellow-500'; 
+          } else if (item.revisions >= 2) {
+            bgColor = 'border-green-500'; 
+          }
+
+          return (
+            <TouchableOpacity className={`flex-col mb-4 p-4 rounded-lg border-2 ${bgColor}`}>
+              <Text className="text-xl font-bold mb-2">{item.name}</Text>
+
+              <View className="flex flex-row mb-2">
+                <Text className="text-yellow-500 text-xs basis-1/2">{renderStars(item.priority)}</Text>
+                <Text className="font-bold text-gray-700 text-xs">Revisions:</Text>
+                <Text className="text-gray-700 text-xs"> {item.revisions}</Text>
+              </View>
+
+
+              <Text className="text-gray-700 mb-2 text-xs">
+                <Text className="font-bold ">Last Revised:</Text> {new Date(item.lastRevision).toDateString()}
+              </Text>
+
+              <Link href={`/view/${item.id}`}>
+                <Text className="text-blue-800 underline">View Details</Text>
+              </Link>
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={
-          <Text style={styles.emptyMessage}>No topics available for this subject.</Text>
+          <Text className="text-gray-500 text-center mt-8">No topics available for this subject.</Text>
         }
       />
+
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    padding: 16,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  pickerContainer: {
-    marginBottom: 16,
-  },
-  picker: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingVertical: 8,
-  },
-  topicCard: {
-    flexDirection: 'column',
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  topicTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  topicPriority: {
-    color: '#fbbf24',
-    marginBottom: 8,
-    fontSize: 16,
-  },
-  topicText: {
-    color: '#4b5563',
-    marginBottom: 4,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  emptyMessage: {
-    color: '#6b7280',
-    textAlign: 'center',
-    marginTop: 32,
-  },
-});
 
 export default ViewTopics;

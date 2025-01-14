@@ -5,7 +5,6 @@ import * as FileSystem from 'expo-file-system';
 import { FILENAME } from '@/constants/data';
 import { Subject, Topic } from '@/constants/types';
 
-
 export default function TopicPage() {
   const { id: topicId } = useLocalSearchParams(); // Get the topicId from the route
   const [topicDetails, setTopicDetails] = useState<Topic | null>(null);
@@ -53,10 +52,8 @@ export default function TopicPage() {
 
         // Write the updated subjects array back to the JSON file
         await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(subjects));
-        setTopicDetails({...topicDetails,
-          lastRevision : currentDate,
-          revisions : topicDetails.revisions
-        });
+        setTopicDetails({ ...topicDetails, lastRevision: currentDate, revisions: topicDetails.revisions });
+        
         // Notify user of success
         Alert.alert(
           "Success",
@@ -96,7 +93,6 @@ export default function TopicPage() {
     fetchTopicDetails();
   }, [topicId]);
 
-
   useEffect(() => {
     const backAction = () => {
       router.push('/view');
@@ -111,97 +107,41 @@ export default function TopicPage() {
 
   if (loading) {
     return (
-      <View style={styles.centeredContainer}>
-      <Text style={styles.loadingText}>Loading...</Text>
-    </View>
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <Text className="text-lg text-gray-600">Loading...</Text>
+      </View>
     );
   }
 
   if (!topicDetails) {
     return (
-      <View style={styles.centeredContainer}>
-      <Text style={styles.errorText}>Topic not found.</Text>
-    </View>
+      <View className="flex-1 justify-center items-center bg-gray-100">
+        <Text className="text-lg text-red-500">Topic not found.</Text>
+      </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-    <Text style={styles.header}>Topic Details</Text>
-    <View style={styles.card}>
-      <Text style={styles.label}>Name:</Text>
-      <Text style={styles.value}>{topicDetails.name}</Text>
+    <View className="flex-1 p-4 bg-gray-100">
+      <Text className="text-2xl font-bold mb-4 text-gray-800">Topic Details</Text>
+      <View className="bg-white p-4 rounded-lg shadow-md mb-4">
+        <Text className="text-lg font-semibold text-gray-700 mb-2">Name:</Text>
+        <Text className="text-md text-gray-600 mb-4">{topicDetails.name}</Text>
 
-      <Text style={styles.label}>Priority:</Text>
-      <Text style={styles.priority}>{'⭐'.repeat(topicDetails.priority)}</Text>
+        <Text className="text-lg font-semibold text-gray-700 mb-2">Priority:</Text>
+        <Text className="text-md text-yellow-500 mb-4">{'⭐'.repeat(topicDetails.priority)}</Text>
 
-      <Text style={styles.label}>Revisions:</Text>
-      <Text style={styles.value}>{topicDetails.revisions}</Text>
+        <Text className="text-lg font-semibold text-gray-700 mb-2">Revisions:</Text>
+        <Text className="text-md text-gray-600 mb-4">{topicDetails.revisions}</Text>
 
-      <Text style={styles.label}>Last Revision:</Text>
-      <Text style={styles.value}>{topicDetails.lastRevision}</Text>
+        <Text className="text-lg font-semibold text-gray-700 mb-2">Last Revision:</Text>
+        <Text className="text-md text-gray-600 mb-4">{topicDetails.lastRevision}</Text>
 
-      <Text style={styles.label}>Added:</Text>
-      <Text style={styles.value}>{topicDetails.added}</Text>
+        <Text className="text-lg font-semibold text-gray-700 mb-2">Added:</Text>
+        <Text className="text-md text-gray-600 mb-4">{topicDetails.added}</Text>
+      </View>
+
+      <Button title="Revised Today" onPress={handleRevisedToday} />
     </View>
-
-    <Button title="Revised Today" onPress={handleRevisedToday} />
-  </View>
   );
 }
-
-
-const styles = StyleSheet.create({
-  centeredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-  },
-  loadingText: {
-    fontSize: 18,
-    color: '#4b5563',
-  },
-  errorText: {
-    fontSize: 18,
-    color: '#ef4444',
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: '#f3f4f6',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#1f2937',
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 4,
-  },
-  value: {
-    fontSize: 14,
-    color: '#374151',
-    marginBottom: 8,
-  },
-  priority: {
-    fontSize: 14,
-    color: '#fbbf24',
-    marginBottom: 8,
-  },
-});
